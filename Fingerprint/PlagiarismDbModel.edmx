@@ -1,0 +1,307 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="PlagarismDbModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2008" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="Calculations">
+          <Key>
+            <PropertyRef Name="calcid" />
+          </Key>
+          <Property Name="calcid" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="value" Type="int" Nullable="false" />
+          <Property Name="docid" Type="uniqueidentifier" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Documents">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="docname" Type="text" Nullable="false" />
+          <Property Name="wordcount" Type="int" Nullable="false" />
+          <Property Name="detectedwordcount" Type="int" Nullable="false" />
+          <Property Name="isnazief" Type="bit" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Results">
+          <Key>
+            <PropertyRef Name="resultid" />
+          </Key>
+          <Property Name="resultid" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="sourcedoc" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="targetdoc" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="jaccard" Type="decimal" Precision="18" Scale="0" />
+          <Property Name="pearson" Type="decimal" Precision="18" Scale="0" />
+          <Property Name="euclidean" Type="decimal" Precision="18" Scale="0" />
+        </EntityType>
+        <EntityType Name="SimilarWords">
+          <Key>
+            <PropertyRef Name="pairid" />
+          </Key>
+          <Property Name="pairid" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="docid" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="dictionaryid" Type="int" Nullable="false" />
+          <Property Name="word" Type="text" Nullable="false" />
+        </EntityType>
+        <Association Name="FK_Calculations_Documents">
+          <End Role="Documents" Type="Self.Documents" Multiplicity="1" />
+          <End Role="Calculations" Type="Self.Calculations" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Documents">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="Calculations">
+              <PropertyRef Name="docid" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Results_Documents">
+          <End Role="Documents" Type="Self.Documents" Multiplicity="1" />
+          <End Role="Results" Type="Self.Results" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Documents">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="Results">
+              <PropertyRef Name="sourcedoc" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Results_Documents1">
+          <End Role="Documents" Type="Self.Documents" Multiplicity="1" />
+          <End Role="Results" Type="Self.Results" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Documents">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="Results">
+              <PropertyRef Name="targetdoc" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Table_1_Documents">
+          <End Role="Documents" Type="Self.Documents" Multiplicity="1" />
+          <End Role="SimilarWords" Type="Self.SimilarWords" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Documents">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="SimilarWords">
+              <PropertyRef Name="docid" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="PlagarismDbModelStoreContainer">
+          <EntitySet Name="Calculations" EntityType="Self.Calculations" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Documents" EntityType="Self.Documents" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Results" EntityType="Self.Results" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="SimilarWords" EntityType="Self.SimilarWords" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK_Calculations_Documents" Association="Self.FK_Calculations_Documents">
+            <End Role="Documents" EntitySet="Documents" />
+            <End Role="Calculations" EntitySet="Calculations" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Results_Documents" Association="Self.FK_Results_Documents">
+            <End Role="Documents" EntitySet="Documents" />
+            <End Role="Results" EntitySet="Results" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Results_Documents1" Association="Self.FK_Results_Documents1">
+            <End Role="Documents" EntitySet="Documents" />
+            <End Role="Results" EntitySet="Results" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Table_1_Documents" Association="Self.FK_Table_1_Documents">
+            <End Role="Documents" EntitySet="Documents" />
+            <End Role="SimilarWords" EntitySet="SimilarWords" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="PlagarismDbModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="Calculation">
+          <Key>
+            <PropertyRef Name="calcid" />
+          </Key>
+          <Property Name="calcid" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="value" Type="Int32" Nullable="false" />
+          <Property Name="docid" Type="Guid" Nullable="false" />
+          <NavigationProperty Name="Document" Relationship="Self.FK_Calculations_Documents" FromRole="Calculations" ToRole="Documents" />
+        </EntityType>
+        <EntityType Name="Document">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Guid" Nullable="false" />
+          <Property Name="docname" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="wordcount" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Calculations" Relationship="Self.FK_Calculations_Documents" FromRole="Documents" ToRole="Calculations" />
+          <NavigationProperty Name="Results" Relationship="Self.FK_Results_Documents" FromRole="Documents" ToRole="Results" />
+          <NavigationProperty Name="Results1" Relationship="Self.FK_Results_Documents1" FromRole="Documents" ToRole="Results" />
+          <NavigationProperty Name="SimilarWords" Relationship="Self.FK_Table_1_Documents" FromRole="Documents" ToRole="SimilarWords" />
+          <Property Name="detectedwordcount" Type="Int32" Nullable="false" />
+          <Property Name="isnazief" Type="Boolean" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Result">
+          <Key>
+            <PropertyRef Name="resultid" />
+          </Key>
+          <Property Name="resultid" Type="Guid" Nullable="false" />
+          <Property Name="sourcedoc" Type="Guid" Nullable="false" />
+          <Property Name="targetdoc" Type="Guid" Nullable="false" />
+          <Property Name="jaccard" Type="Decimal" Precision="18" Scale="0" />
+          <Property Name="pearson" Type="Decimal" Precision="18" Scale="0" />
+          <Property Name="euclidean" Type="Decimal" Precision="18" Scale="0" />
+          <NavigationProperty Name="Document" Relationship="Self.FK_Results_Documents" FromRole="Results" ToRole="Documents" />
+          <NavigationProperty Name="Document1" Relationship="Self.FK_Results_Documents1" FromRole="Results" ToRole="Documents" />
+        </EntityType>
+        <EntityType Name="SimilarWord">
+          <Key>
+            <PropertyRef Name="pairid" />
+          </Key>
+          <Property Name="pairid" Type="Guid" Nullable="false" />
+          <Property Name="docid" Type="Guid" Nullable="false" />
+          <Property Name="dictionaryid" Type="Int32" Nullable="false" />
+          <Property Name="word" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" Nullable="false" />
+          <NavigationProperty Name="Document" Relationship="Self.FK_Table_1_Documents" FromRole="SimilarWords" ToRole="Documents" />
+        </EntityType>
+        <Association Name="FK_Calculations_Documents">
+          <End Role="Documents" Type="Self.Document" Multiplicity="1" />
+          <End Role="Calculations" Type="Self.Calculation" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Documents">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="Calculations">
+              <PropertyRef Name="docid" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Results_Documents">
+          <End Role="Documents" Type="Self.Document" Multiplicity="1" />
+          <End Role="Results" Type="Self.Result" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Documents">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="Results">
+              <PropertyRef Name="sourcedoc" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Results_Documents1">
+          <End Role="Documents" Type="Self.Document" Multiplicity="1" />
+          <End Role="Results" Type="Self.Result" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Documents">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="Results">
+              <PropertyRef Name="targetdoc" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Table_1_Documents">
+          <End Role="Documents" Type="Self.Document" Multiplicity="1" />
+          <End Role="SimilarWords" Type="Self.SimilarWord" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Documents">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="SimilarWords">
+              <PropertyRef Name="docid" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="PlagarismDbEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="Calculations" EntityType="Self.Calculation" />
+          <EntitySet Name="Documents" EntityType="Self.Document" />
+          <EntitySet Name="Results" EntityType="Self.Result" />
+          <EntitySet Name="SimilarWords" EntityType="Self.SimilarWord" />
+          <AssociationSet Name="FK_Calculations_Documents" Association="Self.FK_Calculations_Documents">
+            <End Role="Documents" EntitySet="Documents" />
+            <End Role="Calculations" EntitySet="Calculations" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Results_Documents" Association="Self.FK_Results_Documents">
+            <End Role="Documents" EntitySet="Documents" />
+            <End Role="Results" EntitySet="Results" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Results_Documents1" Association="Self.FK_Results_Documents1">
+            <End Role="Documents" EntitySet="Documents" />
+            <End Role="Results" EntitySet="Results" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Table_1_Documents" Association="Self.FK_Table_1_Documents">
+            <End Role="Documents" EntitySet="Documents" />
+            <End Role="SimilarWords" EntitySet="SimilarWords" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="PlagarismDbModelStoreContainer" CdmEntityContainer="PlagarismDbEntities">
+          <EntitySetMapping Name="Calculations">
+            <EntityTypeMapping TypeName="PlagarismDbModel.Calculation">
+              <MappingFragment StoreEntitySet="Calculations">
+                <ScalarProperty Name="calcid" ColumnName="calcid" />
+                <ScalarProperty Name="value" ColumnName="value" />
+                <ScalarProperty Name="docid" ColumnName="docid" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Documents">
+            <EntityTypeMapping TypeName="PlagarismDbModel.Document">
+              <MappingFragment StoreEntitySet="Documents">
+                <ScalarProperty Name="isnazief" ColumnName="isnazief" />
+                <ScalarProperty Name="detectedwordcount" ColumnName="detectedwordcount" />
+                <ScalarProperty Name="id" ColumnName="id" />
+                <ScalarProperty Name="docname" ColumnName="docname" />
+                <ScalarProperty Name="wordcount" ColumnName="wordcount" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Results">
+            <EntityTypeMapping TypeName="PlagarismDbModel.Result">
+              <MappingFragment StoreEntitySet="Results">
+                <ScalarProperty Name="resultid" ColumnName="resultid" />
+                <ScalarProperty Name="sourcedoc" ColumnName="sourcedoc" />
+                <ScalarProperty Name="targetdoc" ColumnName="targetdoc" />
+                <ScalarProperty Name="jaccard" ColumnName="jaccard" />
+                <ScalarProperty Name="pearson" ColumnName="pearson" />
+                <ScalarProperty Name="euclidean" ColumnName="euclidean" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SimilarWords">
+            <EntityTypeMapping TypeName="PlagarismDbModel.SimilarWord">
+              <MappingFragment StoreEntitySet="SimilarWords">
+                <ScalarProperty Name="pairid" ColumnName="pairid" />
+                <ScalarProperty Name="docid" ColumnName="docid" />
+                <ScalarProperty Name="dictionaryid" ColumnName="dictionaryid" />
+                <ScalarProperty Name="word" ColumnName="word" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="true" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>
