@@ -9,7 +9,7 @@ namespace Fingerprint
 {
     public class TFIDF
     {
-        internal static List<string> Tokenize(string doc)
+        public static List<string> Tokenize(string doc)
         {
             doc = Regex.Replace(doc, "<[^<>]+>", ""); //strip all HTML
             doc = Regex.Replace(doc, "[0-9]+", "number"); //strip numbers
@@ -20,7 +20,7 @@ namespace Fingerprint
             return doc.Split(" @$/#.-:&*+=[]?!(){},''\">_<;%\\".ToCharArray()).ToList(); //tokenize and split based on punctuation
         }
 
-        internal static List<List<double>> CalculateTFIDF(List<List<string>> vocabsInDoc)
+        public static List<List<double>> CalculateTFIDF(List<List<string>> vocabsInDoc)
         {
             Dictionary<string, int> count = new Dictionary<string, int>();
             Dictionary<string, double> result = new Dictionary<string, double>();

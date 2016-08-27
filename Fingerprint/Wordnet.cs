@@ -10,10 +10,11 @@ namespace Fingerprint
 {
     public class Wordnet
     {
-        internal static int consoleln;
+        public static int consoleln;
         //indonesian stop words
         //reference: http://web.archive.org/web/20100104090147/http://fpmipa.upi.edu/staff/yudi/stop_words_list.txt
-        internal static List<string> stopWords
+        public
+             static List<string> stopWords
         {
             get
             {
@@ -37,7 +38,7 @@ namespace Fingerprint
 
         }
 
-        internal static List<char> punctuation
+        public static List<char> punctuation
         {
             get
             {
@@ -49,7 +50,7 @@ namespace Fingerprint
             }
         }
 
-        private Dictionary<string, int> goodness
+        public Dictionary<string, int> goodness
         {
             get
             {
@@ -64,10 +65,10 @@ namespace Fingerprint
             }
         }
 
-        //private readonly string file = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"\wn-msa-all.tab");
+        // private readonly string file = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetName().CodeBase), @"\xampp\wn-msa-all.tab");
         private readonly string file = "wn-msa-all.tab";
 
-        internal List<Tuple<int, string, int>> GetSemanticWord()
+        public List<Tuple<int, string, int>> GetSemanticWord()
         {
             using (StreamReader sr = new StreamReader(this.file))
             {
@@ -99,7 +100,39 @@ namespace Fingerprint
             }
         }
 
-        internal void PrintDictionary()
+        public List<Tuple<int, string, int>> GetSemanticWord(string filename)
+        {
+            using (StreamReader sr = new StreamReader(filename))
+            {
+                string[] rows = sr.ReadToEnd().Split('\n');
+                if (rows.Length > 0)
+                {
+                    List<Tuple<int, string, int>> result = new List<Tuple<int, string, int>>();
+                    foreach (var row in rows)
+                    {
+                        string[] part = row.Split('\t');
+                        if (part.Length == 4)
+                        {
+                            if (part[1] == "I" || part[1] == "B") //select only Bahasa Indonesia or Bahasa in common (shared between Malay and Indo)
+                            {
+                                string idsub = part[0].Substring(0, part[0].IndexOf("-"));
+                                int id;
+                                if (Int32.TryParse(idsub, out id))
+                                {
+                                    result.Add(
+                                        new Tuple<int, string, int>
+                                        (id, part[3], this.goodness.Where(p => p.Key == part[2]).First().Value));
+                                }
+                            }
+                        }
+                    }
+                    return result;
+                }
+                else return new List<Tuple<int, string, int>>();
+            }
+        }
+
+        public void PrintDictionary()
         {
             var semantic = this.GetSemanticWord();
             Console.Write("ID");
@@ -120,7 +153,7 @@ namespace Fingerprint
             Console.ReadLine();
         }
 
-        private void InsertToDb(List<int> semanticRelations, int docNo, Dictionary<int, string> words, bool isNazief)
+        public void InsertToDb(List<int> semanticRelations, int docNo, Dictionary<int, string> words, bool isNazief)
         {
             using (PlagarismDbEntities dbContent = new PlagarismDbEntities())
             {
@@ -160,7 +193,7 @@ namespace Fingerprint
             }
         }
 
-        internal List<int> GetSemanticRelation(List<string> words, int docNo, out List<string> vocabList,
+        public List<int> GetSemanticRelation(List<string> words, int docNo, out List<string> vocabList,
             out Dictionary<int, string> results)
         {
             results = new Dictionary<int, string>();
@@ -212,7 +245,59 @@ namespace Fingerprint
             return ids;
         }
 
-        internal List<int> GetSemanticRelation(List<string> words, int docNo, int totalDoc, out List<string> vocabList,
+        public List<int> GetSemanticRelation(List<string> words, int docNo, out List<string> vocabList,
+            out Dictionary<int, string> results, string filename)
+        {
+            results = new Dictionary<int, string>();
+            vocabList = new List<string>();
+            List<int> ids = new List<int>();
+            var semantic = this.GetSemanticWord(filename);
+            int count = words.Count;
+            int current = 1;
+            int excluded = 0;
+            consoleln = 0;
+            foreach (var word in words)
+            {
+                var matches = semantic.Where(p => p.Item2.ToLower() == word.ToLower()); //search word in dictionary
+                if (matches.Count() != 0)
+                {
+                    if (!stopWords.Contains(word.ToLower()))
+                    {
+                        matches = matches.OrderByDescending(p => p.Item3).ToList(); //select highest score in word relationship
+                        ids.Add(matches.First().Item1); //add the ID
+                                                        //add the word to vocab list
+                        vocabList.Add(matches.First().Item2);
+                        foreach (var match in matches)
+                        {
+                            //ids.Add(match.Item1); //add the ID
+                            //                      //add the word to vocab list
+                            //vocabList.Add(match.Item2);
+
+                            var sem = semantic.Where(q => q.Item1 == match.Item1 && q.Item2 != match.Item2);
+                            if (sem.Count() != 0)
+                            {
+                                int max = sem.Max(p => p.Item3);
+                                if (!results.ContainsKey(match.Item1))
+                                    results.Add(match.Item1, match.Item2);
+                            }
+                        }
+                    }
+                    else excluded++;
+                }
+                //Console.SetCursorPosition(0, consoleln);
+                //Console.WriteLine("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t");
+                //Console.SetCursorPosition(0, consoleln);
+                //Console.WriteLine("STATUS: Processing words in document " + docNo + " of 2: " + current + "/" + count +
+                //". Excluded stop words: " + excluded);
+
+                current++;
+            }
+            consoleln++;
+            //this.InsertToDb(ids, docNo, results);
+            return ids;
+        }
+
+        public List<int> GetSemanticRelation(List<string> words, int docNo, int totalDoc, out List<string> vocabList,
           out Dictionary<int, string> results, Stemmer stem)
         {
             results = new Dictionary<int, string>();
@@ -223,7 +308,63 @@ namespace Fingerprint
             int current = 1;
             int excluded = 0;
             consoleln = 0;
-                
+
+            foreach (var oldword in words)
+            {
+                string word = stem.PerformNaziefStemming(oldword);
+
+                var matches = semantic.Where(p => p.Item2.ToLower() == word.ToLower()); //search word in dictionary
+                if (matches.Count() != 0)
+                {
+                    if (!stopWords.Contains(word.ToLower()))
+                    {
+                        matches = matches.OrderByDescending(p => p.Item3).ToList(); //select highest score in word relationship
+                                                                                    //var match = matches.First();
+                                                                                    //ids.Add(match.Item1); //add the ID
+                                                                                    //add the word to vocab list
+                                                                                    //vocabList.Add(match.Item2);
+                        foreach (var match in matches)
+                        {
+                            ids.Add(match.Item1); //add the ID
+                                                  //add the word to vocab list
+                            vocabList.Add(match.Item2);
+
+                            var sem = semantic.Where(q => q.Item1 == match.Item1 && q.Item2 != match.Item2);
+                            if (sem.Count() != 0)
+                            {
+                                int max = sem.Max(p => p.Item3);
+                                if (!results.ContainsKey(match.Item1))
+                                    results.Add(match.Item1, match.Item2);
+                            }
+                        }
+                    }
+                    else excluded++;
+                }
+                Console.SetCursorPosition(0, consoleln);
+                Console.WriteLine("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t");
+                Console.SetCursorPosition(0, consoleln);
+                Console.WriteLine("STATUS: Processing words in document " + docNo + " of " + totalDoc + ": " + current + "/" + count +
+                ". Excluded stop words: " + excluded);
+
+                current++;
+            }
+            consoleln++;
+            //this.InsertToDb(ids, docNo, results, true);
+            return ids;
+        }
+
+        public List<int> GetSemanticRelation(List<string> words, int docNo, int totalDoc, out List<string> vocabList,
+          out Dictionary<int, string> results, string filename, Stemmer stem)
+        {
+            results = new Dictionary<int, string>();
+            vocabList = new List<string>();
+            List<int> ids = new List<int>();
+            var semantic = this.GetSemanticWord(filename);
+            int count = words.Count;
+            int current = 1;
+            int excluded = 0;
+            consoleln = 0;
+
             foreach (var oldword in words)
             {
                 string word = stem.PerformNaziefStemming(oldword);
@@ -255,11 +396,11 @@ namespace Fingerprint
                     }
                     else excluded++;
                 }
-                Console.SetCursorPosition(0, consoleln);
-                Console.WriteLine("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t");
-                Console.SetCursorPosition(0, consoleln);
-                Console.WriteLine("STATUS: Processing words in document " + docNo + " of " + totalDoc + ": " + current + "/" + count +
-                ". Excluded stop words: " + excluded);
+                //Console.SetCursorPosition(0, consoleln);
+                //Console.WriteLine("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t");
+                //Console.SetCursorPosition(0, consoleln);
+                //Console.WriteLine("STATUS: Processing words in document " + docNo + " of " + totalDoc + ": " + current + "/" + count +
+                //". Excluded stop words: " + excluded);
 
                 current++;
             }
